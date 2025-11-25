@@ -73,7 +73,7 @@ export const AdvancedDocumentGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      await ExcelGenerator.generateKPIDashboard(kpiData);
+      await ExcelGenerator.generateKPIDashboard(kpiData || []);
 
       const fileRecord = {
         id: Date.now().toString(),
@@ -96,7 +96,7 @@ export const AdvancedDocumentGenerator: React.FC = () => {
 
     try {
       const result = await DocumentManager.syncDataToSheets(
-        kpiData,
+        kpiData || [],
         `KPI Dashboard ${new Date().toLocaleDateString()}`
       );
 
@@ -292,7 +292,7 @@ const DataExportTab: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   const dataOptions = [
-    { value: 'all', label: 'All KPI Data', count: kpiData.length },
+    { value: 'all', label: 'All KPI Data', count: kpiData?.length || 0 },
     { value: 'phase1', label: 'Phase 1 - Quick Wins', count: 4 },
     { value: 'phase2', label: 'Phase 2 - Analytics', count: 4 },
     { value: 'phase3', label: 'Phase 3 - Intelligence', count: 5 },
@@ -308,7 +308,7 @@ const DataExportTab: React.FC = () => {
     setIsExporting(true);
     try {
       // Filter data based on selection
-      let filteredData = kpiData;
+      let filteredData = kpiData || [];
       if (!selectedData.includes('all')) {
         // Apply phase filtering logic here
       }
