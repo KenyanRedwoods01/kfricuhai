@@ -256,7 +256,17 @@ export const AdvancedChart: React.FC<AdvancedChartProps> = ({
         );
 
       default:
-        return null;
+        return (
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            height: '100%',
+            color: themeColors.text 
+          }}>
+            <p>Unsupported chart type: {type}</p>
+          </div>
+        );
     }
   };
 
