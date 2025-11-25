@@ -171,7 +171,7 @@ export const AdvancedSpreadsheet: React.FC<{
     setSelectedRows(newSelected);
   }, [selectedRows, currentPage, pageSize]);
 
-  const formatCellValue = (value: any, type: string, format?: string): string => {
+  const formatCellValue = (value: any, type: string, dateFormat?: string): string => {
     if (value === null || value === undefined) return '';
     
     switch (type) {
@@ -187,7 +187,7 @@ export const AdvancedSpreadsheet: React.FC<{
       case 'date':
         try {
           const date = typeof value === 'string' ? parseISO(value) : new Date(value);
-          return format(date, format || 'MMM dd, yyyy');
+          return format(date, dateFormat || 'MMM dd, yyyy');
         } catch {
           return String(value);
         }
