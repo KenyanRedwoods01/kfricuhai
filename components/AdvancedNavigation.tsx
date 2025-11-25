@@ -21,7 +21,18 @@ import {
   Home,
   Target,
   Zap,
-  Brain
+  Brain,
+  Database,
+  Shield,
+  Monitor,
+  Eye,
+  Globe,
+  CheckCircle,
+  AlertTriangle,
+  Server,
+  GitBranch,
+  Cpu,
+  Loader2
 } from 'lucide-react';
 
 interface NavigationItem {
@@ -110,6 +121,109 @@ const navigationItems: NavigationItem[] = [
     ]
   },
   {
+    id: 'data-engineering',
+    label: 'Data Engineering',
+    icon: <Database className="w-5 h-5" />,
+    children: [
+      {
+        id: 'data-quality',
+        label: 'Data Quality',
+        href: '/dashboard/data-engineering/data-quality',
+        icon: <CheckCircle className="w-4 h-4" />,
+        color: 'text-green-600',
+        description: 'Monitor and maintain data quality metrics'
+      },
+      {
+        id: 'pipeline-monitoring',
+        label: 'Pipeline Monitoring',
+        href: '/dashboard/data-engineering/pipeline-monitoring',
+        icon: <Monitor className="w-4 h-4" />,
+        color: 'text-blue-600',
+        description: 'Real-time pipeline health and performance'
+      },
+      {
+        id: 'data-governance',
+        label: 'Data Governance',
+        href: '/dashboard/data-engineering/data-governance',
+        icon: <Shield className="w-4 h-4" />,
+        color: 'text-purple-600',
+        description: 'Compliance and governance monitoring'
+      },
+      {
+        id: 'data-observability',
+        label: 'Data Observability',
+        href: '/dashboard/data-engineering/data-observability',
+        icon: <Eye className="w-4 h-4" />,
+        color: 'text-cyan-600',
+        description: 'AI-powered observability and insights'
+      },
+      {
+        id: 'api-monitoring',
+        label: 'API Monitoring',
+        href: '/dashboard/data-engineering/api-monitoring',
+        icon: <Globe className="w-4 h-4" />,
+        color: 'text-orange-600',
+        description: 'API performance and security monitoring'
+      },
+      {
+        id: 'real-time-analytics',
+        label: 'Real-Time Analytics',
+        href: '/dashboard/data-engineering/real-time-analytics',
+        icon: <Activity className="w-4 h-4" />,
+        color: 'text-red-600',
+        description: 'Live streaming data and analytics'
+      }
+    ]
+  },
+  {
+    id: 'animated-dashboards',
+    label: 'Animated Dashboards',
+    icon: <Zap className="w-5 h-5" />,
+    description: 'Interactive animations and micro-interactions',
+    children: [
+      {
+        id: 'animated-kpi',
+        label: 'Animated KPI Dashboard',
+        href: '/dashboard/animated/kpi',
+        icon: <BarChart3 className="w-4 h-4" />,
+        color: 'text-green-600',
+        description: 'KPI cards with GSAP animations and micro-interactions'
+      },
+      {
+        id: 'animated-charts',
+        label: 'Animated Charts',
+        href: '/dashboard/animated/charts',
+        icon: <TrendingUp className="w-4 h-4" />,
+        color: 'text-blue-600',
+        description: 'Interactive charts with racing bars and progressive reveal'
+      },
+      {
+        id: 'real-time-streaming',
+        label: 'Real-Time Streaming',
+        href: '/dashboard/animated/streaming',
+        icon: <Activity className="w-4 h-4" />,
+        color: 'text-purple-600',
+        description: 'Live data streaming with GSAP ticker animations'
+      },
+      {
+        id: 'advanced-loading',
+        label: 'Advanced Loading',
+        href: '/dashboard/animated/loading',
+        icon: <Loader2 className="w-4 h-4" />,
+        color: 'text-orange-600',
+        description: 'Skeleton screens, progress bars, and loading animations'
+      },
+      {
+        id: 'micro-interactions',
+        label: 'Micro-Interactions',
+        href: '/dashboard/animated/interactions',
+        icon: <Target className="w-4 h-4" />,
+        color: 'text-cyan-600',
+        description: 'Hover effects, tooltips, and interactive feedback'
+      }
+    ]
+  },
+  {
     id: 'sales',
     label: 'Sales',
     href: '/dashboard/sales',
@@ -159,7 +273,7 @@ export const AdvancedNavigation: React.FC<AdvancedNavigationProps> = ({
   onToggle
 }) => {
   const router = useRouter();
-  const [expandedItems, setExpandedItems] = useState<string[]>(['kpi']);
+  const [expandedItems, setExpandedItems] = useState<string[]>(['kpi', 'data-engineering', 'animated-dashboards']);
   const [searchQuery, setSearchQuery] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
