@@ -51,8 +51,7 @@ const SkeletonCard: React.FC<SkeletonCardProps> = ({ isVisible, delay }) => {
     
     // Store cleanup function
     (skeleton as any)._shimmerCleanup = () => clearInterval(shimmerInterval);
-      }
-    );
+  };
   }, [isVisible, delay]);
 
   return (
