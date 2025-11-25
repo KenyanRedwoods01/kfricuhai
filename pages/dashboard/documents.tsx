@@ -3,14 +3,16 @@ import { motion } from 'framer-motion';
 import { AdvancedDocumentGenerator } from '../components/AdvancedDocumentGenerator';
 import { AdvancedSpreadsheet, SpreadsheetAnalytics } from '../components/AdvancedSpreadsheet';
 import { DownloadManager } from '../components/DocumentDownloadManager';
-import { useKpiData } from '../contexts/KpiContext';
+import { useKpi } from '../contexts/KpiContext';
 
 /**
  * Main Document Generation Page
  * Comprehensive document management and generation interface
  */
 export default function DocumentGenerationPage() {
-  const { kpiData, isLoading } = useKpiData();
+  const { state } = useKpi();
+  const kpiData = state.data;
+  const isLoading = state.loading;
   const [activeTab, setActiveTab] = useState<'generator' | 'spreadsheet' | 'downloads' | 'analytics'>('generator');
 
   const tabs = [

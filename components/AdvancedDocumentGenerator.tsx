@@ -19,14 +19,17 @@ import {
 import { PDFGenerator } from '../utils/pdfGenerator';
 import { ExcelGenerator, DataFormatters } from '../utils/excelGenerator';
 import { DocumentManager, GoogleSheetsService, GoogleDriveService } from '../services/googleIntegration';
-import { useKpiData } from '../contexts/KpiContext';
+import { useKpi } from '../contexts/KpiContext';
 
 /**
  * Advanced Document Generator Component
  * Beautiful, modern UI for document generation and export
  */
 export const AdvancedDocumentGenerator: React.FC = () => {
-  const { kpiData, refreshKpiData, isLoading } = useKpiData();
+  const { state, actions } = useKpi();
+  const kpiData = state.data;
+  const isLoading = state.loading;
+  const refreshKpiData = actions.refreshData;
   const [activeTab, setActiveTab] = useState<'generate' | 'export' | 'templates' | 'schedule'>('generate');
   const [exportFormat, setExportFormat] = useState<'pdf' | 'excel' | 'csv' | 'google-sheets'>('pdf');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -199,7 +202,9 @@ export const AdvancedDocumentGenerator: React.FC = () => {
  * Document Generation Tab Component
  */
 const DocumentGenerationTab: React.FC = () => {
-  const { kpiData, isLoading } = useKpiData();
+  const { state } = useKpi();
+  const kpiData = state.data;
+  const isLoading = state.loading;
   const [isGenerating, setIsGenerating] = useState(false);
 
   const quickActions = [
@@ -279,7 +284,8 @@ const DocumentGenerationTab: React.FC = () => {
  * Data Export Tab Component
  */
 const DataExportTab: React.FC = () => {
-  const { kpiData } = useKpiData();
+  const { state } = useKpi();
+  const kpiData = state.data;
   const [selectedData, setSelectedData] = useState<string[]>(['all']);
   const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'xlsx'>('xlsx');
   const [includeCharts, setIncludeCharts] = useState(true);
