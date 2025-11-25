@@ -52,7 +52,6 @@ interface Warehouse {
   address: string;
   is_active: boolean;
   pos_accnt_id: number;
-  pos_accnt_id: number;
   biller_id: number;
   warehouse_id: number;
   revenue?: number;
