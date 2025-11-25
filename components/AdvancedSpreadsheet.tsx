@@ -514,7 +514,7 @@ const CellEditor: React.FC<{
   const [editValue, setEditValue] = useState(value);
 
   const handleSave = () => {
-    let processedValue = editValue;
+    let processedValue: any = editValue;
     
     // Convert value based on type
     switch (type) {
