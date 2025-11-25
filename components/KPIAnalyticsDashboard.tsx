@@ -275,7 +275,8 @@ class KPIAnalyticsEngine {
         generateInsights(metrics) {
           const insights = [];
 
-          for (const metric of metrics) {
+          for (let i = 0; i < metrics.length; i++) {
+            const metric = metrics[i];
             const timeSeriesData = metric.metadata?.timeSeriesData || [];
             const values = timeSeriesData.map(d => d.value);
             
@@ -517,7 +518,8 @@ export function KPIAnalyticsDashboard({
       const trendMap = new Map<string, KPITrend>();
       const anomalyList: KPIAnomaly[] = [];
 
-      for (const metric of metrics) {
+      for (let i = 0; i < metrics.length; i++) {
+        const metric = metrics[i];
         const timeSeriesData = metric.metadata?.timeSeriesData || [];
         const values = timeSeriesData.map(d => d.value);
 

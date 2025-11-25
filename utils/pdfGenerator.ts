@@ -338,7 +338,8 @@ export class PDFGenerator {
     });
 
     // Content sections
-    for (const section of sections) {
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
       // Add new page for each section
       pdf.addPage();
       yPosition = margin;

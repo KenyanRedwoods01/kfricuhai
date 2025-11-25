@@ -143,7 +143,8 @@ class KPIProcessingWorker {
         batchProcess(operations) {
           const results = {};
           
-          for (const operation of operations) {
+          for (let i = 0; i < operations.length; i++) {
+            const operation = operations[i];
             try {
               const { id, type, data, params } = operation;
               

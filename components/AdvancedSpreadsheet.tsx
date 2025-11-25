@@ -214,7 +214,7 @@ export const AdvancedSpreadsheet: React.FC<{
 
   const getUniqueFilterValues = (columnId: string): any[] => {
     const values = data.map(row => row[columnId]).filter(v => v !== null && v !== undefined);
-    return [...new Set(values)];
+    return Array.from(new Set(values));
   };
 
   // Virtual scrolling calculation

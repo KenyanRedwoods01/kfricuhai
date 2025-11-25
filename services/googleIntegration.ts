@@ -189,7 +189,8 @@ export class GoogleSheetsService {
   ): Promise<string> {
     const spreadsheetId = await this.createSpreadsheet(dashboardName, []);
 
-    for (const source of dataSources) {
+    for (let i = 0; i < dataSources.length; i++) {
+      const source = dataSources[i];
       if (source.data.length === 0) continue;
 
       const headers = Object.keys(source.data[0]);
@@ -519,7 +520,8 @@ export class DocumentManager {
 
       // 3. Share with specified users
       if (options.shareWith) {
-        for (const email of options.shareWith) {
+        for (let i = 0; i < options.shareWith.length; i++) {
+          const email = options.shareWith[i];
           await GoogleDriveService.shareFile(fileId, email, 'reader');
         }
       }

@@ -63,7 +63,8 @@ export class ExcelGenerator {
     this.formatExecutiveSummary(summarySheet, reportData.sections);
 
     // Create sheets for each section
-    for (const section of reportData.sections) {
+    for (let i = 0; i < reportData.sections.length; i++) {
+      const section = reportData.sections[i];
       const sheet = workbook.addWorksheet(section.name);
       await this.formatDataSheet(sheet, section.data, section.type);
     }
@@ -267,7 +268,8 @@ export class ExcelGenerator {
       { name: 'Intelligence', kpis: ['roi', 'churnRate', 'predictiveAnalytics', 'customerSegmentation'] }
     ];
 
-    for (const phase of phases) {
+    for (let i = 0; i < phases.length; i++) {
+      const phase = phases[i];
       const sheet = workbook.addWorksheet(phase.name);
       
       // Phase header
