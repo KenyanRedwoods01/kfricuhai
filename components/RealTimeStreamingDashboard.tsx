@@ -1,8 +1,20 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap'; // TEMP: Disabled due to missing dependency
 import { Activity, Zap, TrendingUp, Wifi, WifiOff, AlertCircle, CheckCircle } from 'lucide-react';
+
+// Simple animation utility to replace GSAP
+const simpleAnimate = (element: HTMLElement, from: any, to: any, duration = 0.8) => {
+  if (!element) return;
+  Object.assign(element.style, { ...from });
+  setTimeout(() => {
+    Object.assign(element.style, {
+      ...to,
+      transition: `all ${duration}s ease-out`
+    });
+  }, 100);
+};
 
 interface LiveMetric {
   id: string;
@@ -38,21 +50,17 @@ const LiveMetricCard: React.FC<{
     if (!card) return;
 
     // Entrance animation
-    gsap.fromTo(card,
-      {
+    setTimeout(() => {
+      simpleAnimate(card, {
         opacity: 0,
-        x: -100,
-        scale: 0.8,
-      },
-      {
+        x: '-100px',
+        transform: 'scale(0.8)',
+      }, {
         opacity: 1,
-        x: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
-        delay: index * 0.1,
-      }
-    );
+        x: '0px',
+        transform: 'scale(1)',
+      }, 0.8);
+    }, index * 100);
   }, [isVisible, index]);
 
   // Real-time value updates
@@ -60,23 +68,38 @@ const LiveMetricCard: React.FC<{
     if (!valueRef.current) return;
 
     // Add subtle pulse for live data
-    gsap.to(valueRef.current, {
-      scale: 1.05,
-      duration: 0.3,
-      yoyo: true,
-      repeat: 1,
+    valueRef.current.style.transition = 'transform 0.3s ease';
+    setTimeout(() => {
+      if (valueRef.current) {
+        valueRef.current.style.transform = 'scale(1.05)';
+        setTimeout(() => {
+          if (valueRef.current) {
+            valueRef.current.style.transform = 'scale(1)';
+          }
+        }, 300);
+      }
+    }, 10);
       ease: "power2.inOut",
     });
 
     // Update value with animation
-    gsap.to({ val: displayValue }, {
-      val: metric.value,
-      duration: 0.5,
-      ease: "power2.out",
-      onUpdate: function() {
-        setDisplayValue(this.targets()[0].val);
+    const startValue = displayValue;
+    const endValue = metric.value;
+    const duration = 500;
+    const startTime = Date.now();
+    
+    const animateValue = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const currentValue = startValue + (endValue - startValue) * progress;
+      setDisplayValue(currentValue);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animateValue);
       }
-    });
+    };
+    
+    animateValue();
 
     // Flash for significant changes
     if (Math.abs(metric.change) > 10) {
@@ -211,20 +234,44 @@ const RealTimeChart: React.FC<{
     path.style.strokeDasharray = pathLength.toString();
     path.style.strokeDashoffset = pathLength.toString();
     
-    gsap.to(path, {
-      strokeDashoffset: 0,
-      duration: 1.5,
-      ease: "power2.out",
-    });
+    // Animate stroke dashoffset
+    const startTime = Date.now();
+    const duration = 1500;
+    
+    const animatePath = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Ease out using cubic bezier
+      const easeOut = 1 - Math.pow(1 - progress, 2);
+      const currentOffset = pathLength * (1 - easeOut);
+      
+      path.style.strokeDashoffset = currentOffset.toString();
+      
+      if (progress < 1) {
+        requestAnimationFrame(animatePath);
+      } else {
+        // Start glow effect after path animation completes
+        startGlowEffect();
+      }
+    };
 
-    // Add glow effect
-    gsap.to(path, {
-      filter: 'drop-shadow(0 0 6px currentColor)',
-      duration: 1,
-      repeat: -1,
-      yoyo: true,
-      ease: "power2.inOut",
-    });
+    function startGlowEffect() {
+      let glowDirection = 1;
+      const glowInterval = setInterval(() => {
+        if (glowDirection === 1) {
+          path.style.filter = 'drop-shadow(0 0 6px currentColor)';
+        } else {
+          path.style.filter = 'drop-shadow(0 0 0px currentColor)';
+        }
+        glowDirection *= -1;
+      }, 1000);
+      
+      // Store cleanup function
+      (path as any)._glowCleanup = () => clearInterval(glowInterval);
+    }
+    
+    animatePath();
   }, [data, height, color]);
 
   return (
@@ -370,13 +417,13 @@ const RealTimeStreamingDashboard: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
-  // GSAP Ticker for real-time updates
+  // Simple setInterval for real-time updates
   useEffect(() => {
     if (!isVisible) return;
 
     const updateInterval = 2000; // Update every 2 seconds
     
-    gsap.ticker.add(() => {
+    const updateData = () => {
       // Simulate real-time data updates
       setMetrics(prevMetrics => 
         prevMetrics.map(metric => ({
@@ -401,13 +448,12 @@ const RealTimeStreamingDashboard: React.FC = () => {
       });
 
       setLastUpdate(new Date());
-    });
+    };
 
-    // Control the ticker frequency
-    gsap.ticker.fps(0.5); // Update at 0.5 FPS for demo purposes
-
+    const intervalId = setInterval(updateData, updateInterval);
+    
     return () => {
-      gsap.ticker.remove(() => {});
+      clearInterval(intervalId);
     };
   }, [isVisible]);
 
@@ -442,12 +488,18 @@ const RealTimeStreamingDashboard: React.FC = () => {
         if (particle.x < 0 || particle.x > window.innerWidth) particle.vx *= -1;
         if (particle.y < 0 || particle.y > window.innerHeight) particle.vy *= -1;
       });
+      
+      // Continue animation if still visible
+      if (isVisible) {
+        requestAnimationFrame(animateParticles);
+      }
     };
 
-    gsap.ticker.add(animateParticles);
+    // Start particle animation
+    requestAnimationFrame(animateParticles);
     
     return () => {
-      gsap.ticker.remove(animateParticles);
+      // No cleanup needed for requestAnimationFrame
     };
   }, [isVisible]);
 

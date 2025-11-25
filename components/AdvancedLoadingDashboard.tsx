@@ -1,8 +1,20 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap'; // TEMP: Disabled due to missing dependency
 import { Loader2, BarChart3, TrendingUp, Users, DollarSign, Activity } from 'lucide-react';
+
+// Simple animation utility to replace GSAP
+const simpleAnimate = (element: HTMLElement, from: any, to: any, duration = 0.8) => {
+  if (!element) return;
+  Object.assign(element.style, { ...from });
+  setTimeout(() => {
+    Object.assign(element.style, {
+      ...to,
+      transition: `all ${duration}s ease-out`
+    });
+  }, 100);
+};
 
 interface LoadingAnimation {
   id: string;
@@ -24,17 +36,21 @@ const SkeletonCard: React.FC<SkeletonCardProps> = ({ isVisible, delay }) => {
     const skeleton = skeletonRef.current;
     
     // Shimmer effect
-    gsap.fromTo(skeleton,
-      {
-        opacity: 0.6,
-      },
-      {
-        opacity: 1,
-        duration: 0.8,
-        ease: "power2.inOut",
-        repeat: -1,
-        yoyo: true,
-        delay,
+    skeleton.style.opacity = '0.6';
+    let shimmerDirection = 1;
+    const shimmerInterval = setInterval(() => {
+      if (shimmerDirection === 1) {
+        skeleton.style.transition = 'opacity 0.8s ease-in-out';
+        skeleton.style.opacity = '1';
+      } else {
+        skeleton.style.transition = 'opacity 0.8s ease-in-out';
+        skeleton.style.opacity = '0.6';
+      }
+      shimmerDirection *= -1;
+    }, 800);
+    
+    // Store cleanup function
+    (skeleton as any)._shimmerCleanup = () => clearInterval(shimmerInterval);
       }
     );
   }, [isVisible, delay]);
@@ -71,12 +87,24 @@ const AnimatedSpinner: React.FC<{ size?: number; color?: string }> = ({
 
     const spinner = spinnerRef.current;
     
-    gsap.to(spinner, {
-      rotate: 360,
-      duration: 1,
-      ease: "none",
-      repeat: -1,
-    });
+    // CSS animation for spinner
+    spinner.style.transform = 'rotate(0deg)';
+    spinner.style.transition = 'transform 1s linear';
+    
+    const spinAnimation = () => {
+      spinner.style.transform = 'rotate(360deg)';
+      setTimeout(() => {
+        spinner.style.transform = 'rotate(0deg)';
+        requestAnimationFrame(spinAnimation);
+      }, 1000);
+    };
+    
+    spinAnimation();
+    
+    // Store cleanup function
+    (spinner as any)._spinCleanup = () => {
+      // No direct cleanup needed for requestAnimationFrame
+    };
   }, []);
 
   return (
@@ -110,16 +138,28 @@ const ProgressBar: React.FC<{
     const bar = progressRef.current;
 
     if (animated) {
-      gsap.to({ value: displayProgress }, {
-        value: progress,
-        duration: 0.8,
-        ease: "power2.out",
-        onUpdate: function() {
-          const current = this.targets()[0].value;
-          setDisplayProgress(current);
-          bar.style.width = `${current}%`;
+      const startValue = displayProgress;
+      const targetValue = progress;
+      const startTime = Date.now();
+      const duration = 800; // ms
+      
+      const animateProgress = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease out using cubic bezier
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = startValue + (targetValue - startValue) * easeOut;
+        
+        setDisplayProgress(current);
+        bar.style.width = `${current}%`;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animateProgress);
         }
-      });
+      };
+      
+      requestAnimationFrame(animateProgress);
     } else {
       setDisplayProgress(progress);
       bar.style.width = `${progress}%`;
@@ -160,16 +200,18 @@ const DataStreamLoader: React.FC = () => {
     ];
 
     streamData.forEach((item, index) => {
-      gsap.fromTo(containerRef.current?.querySelector(`[data-id="${item.id}"]`),
-        {
-          opacity: 0,
-          x: -50,
-        },
-        {
-          opacity: 1,
-          x: 0,
-          duration: 0.5,
-          delay: index * 0.1,
+      const element = containerRef.current?.querySelector(`[data-id="${item.id}"]`) as HTMLElement;
+      if (!element) return;
+      
+      // Set initial state
+      element.style.opacity = '0';
+      element.style.transform = 'translateX(-50px)';
+      element.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      
+      setTimeout(() => {
+        element.style.opacity = '1';
+        element.style.transform = 'translateX(0px)';
+      }, index * 100);
           ease: "power2.out",
         }
       );
@@ -244,14 +286,26 @@ const AdvancedLoadingDashboard: React.FC = () => {
       
       // Animate progress
       const targetProgress = ((i + 1) / loadingSteps.length) * 100;
-      gsap.to({ value: progress }, {
-        value: targetProgress,
-        duration: step.duration / 1000,
-        ease: "power2.out",
-        onUpdate: function() {
-          setProgress(this.targets()[0].value);
+      const startProgress = progress;
+      const startTime = Date.now();
+      const duration = step.duration;
+      
+      const animateProgress = () => {
+        const elapsed = Date.now() - startTime;
+        const t = Math.min(elapsed / duration, 1);
+        
+        // Ease out using cubic bezier
+        const easeOut = 1 - Math.pow(1 - t, 2);
+        const currentProgress = startProgress + (targetProgress - startProgress) * easeOut;
+        
+        setProgress(currentProgress);
+        
+        if (t < 1) {
+          requestAnimationFrame(animateProgress);
         }
-      });
+      };
+      
+      requestAnimationFrame(animateProgress);
       
       await new Promise(resolve => setTimeout(resolve, step.duration));
       
@@ -263,18 +317,18 @@ const AdvancedLoadingDashboard: React.FC = () => {
     
     // Final celebration animation
     if (dashboardRef.current) {
-      const cards = dashboardRef.current.querySelectorAll('.completion-card');
-      gsap.fromTo(cards,
-        {
-          opacity: 0,
-          y: 50,
-          scale: 0.8,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
+      const cards = dashboardRef.current.querySelectorAll('.completion-card') as NodeListOf<HTMLElement>;
+      
+      cards.forEach((card, index) => {
+        // Set initial state
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px) scale(0.8)';
+        card.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+        
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0px) scale(1)';
+        }, index * 150);
           ease: "back.out(1.7)",
           stagger: 0.2,
         }

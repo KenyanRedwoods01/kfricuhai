@@ -1,8 +1,20 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap'; // TEMP: Disabled due to missing dependency
 import { TrendingUp, TrendingDown, Minus, Target, Zap, Eye, BarChart3, Activity, Users, DollarSign } from 'lucide-react';
+
+// Simple animation utility to replace GSAP
+const simpleAnimate = (element: HTMLElement, from: any, to: any, duration = 0.8) => {
+  if (!element) return;
+  Object.assign(element.style, { ...from });
+  setTimeout(() => {
+    Object.assign(element.style, {
+      ...to,
+      transition: `all ${duration}s ease-out`
+    });
+  }, 100);
+};
 
 interface MetricCard {
   id: string;
@@ -33,50 +45,74 @@ const AnimatedMetricCard: React.FC<AnimatedMetricCardProps> = ({ metric, index, 
     if (!card) return;
 
     // Staggered entrance animation
-    const tl = gsap.timeline({ delay: index * 0.1 });
-    
-    tl.fromTo(card, 
-      {
-        opacity: 0,
-        y: 60,
-        scale: 0.8,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
-      }
+    setTimeout(() => {
+      simpleAnimate(card, 
+        {
+          opacity: 0,
+          y: '60px',
+          transform: 'scale(0.8)',
+        },
+        {
+          opacity: 1,
+          y: '0px',
+          transform: 'scale(1)',
+        }
+      );
+    }, index * 100);
     );
 
     // Animate number counting
     const targetValue = parseFloat(metric.value.replace(/[$,]/g, '')) || 0;
     const targetChange = metric.change;
 
-    gsap.to({ value: 0 }, {
-      value: targetValue,
-      duration: 2,
-      ease: "power2.out",
-      onUpdate: function() {
-        const current = Math.floor(this.targets()[0].value);
+    // Animate value counting
+    const animateValue = () => {
+      const duration = 2000;
+      const startTime = Date.now();
+      const startValue = 0;
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = Math.floor(startValue + (targetValue - startValue) * progress);
+        
         setDisplayValue(
           metric.title.includes('Revenue') || metric.title.includes('Revenue') 
             ? `$${current.toLocaleString()}`
             : current.toLocaleString()
         );
-      }
-    });
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      animate();
+    };
 
-    gsap.to({ value: 0 }, {
-      value: targetChange,
-      duration: 1.5,
-      ease: "power2.out",
-      onUpdate: function() {
-        const current = this.targets()[0].value;
+    // Animate change percentage
+    const animateChange = () => {
+      const duration = 1500;
+      const startTime = Date.now();
+      const startValue = 0;
+      
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const current = startValue + (targetChange - startValue) * progress;
+        
         setDisplayChange(current > 0 ? `+${current.toFixed(1)}%` : `${current.toFixed(1)}%`);
-      }
-    });
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      };
+      
+      animate();
+    };
+
+    animateValue();
+    animateChange();
 
   }, [isVisible, metric, index]);
 
@@ -239,23 +275,40 @@ const AnimatedKPIDashboard: React.FC = () => {
     const container = dashboardRef.current;
     if (!container) return;
 
-    // Background animation
-    gsap.to(container, {
-      backgroundPosition: '100% 0%',
-      duration: 20,
-      repeat: -1,
-      ease: "none",
-    });
+    // Background animation using CSS
+    if (container) {
+      container.style.background = `linear-gradient(-45deg, #1e293b, #7c3aed, #1e293b, #312e81)`;
+      container.style.backgroundSize = '400% 400%';
+      container.style.animation = 'gradient 20s ease infinite';
+      
+      // Add CSS animation
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
 
-    // Subtle floating animation for cards
-    gsap.to('.hover\\:bg-white\\/15', {
-      y: -5,
-      duration: 2,
-      repeat: -1,
-      yoyo: true,
-      ease: "power2.inOut",
-      stagger: 0.2,
+    // Subtle floating animation for cards using CSS
+    const cardElements = document.querySelectorAll('.hover\\:bg-white\\/15');
+    cardElements.forEach((card, index) => {
+      const element = card as HTMLElement;
+      element.style.animation = `float 2s ease-in-out infinite ${index * 0.2}s`;
     });
+    
+    // Add CSS animation for floating
+    const floatStyle = document.createElement('style');
+    floatStyle.textContent = `
+      @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-5px); }
+      }
+    `;
+    document.head.appendChild(floatStyle);
   }, [isVisible]);
 
   return (

@@ -32,7 +32,11 @@ import {
   Server,
   GitBranch,
   Cpu,
-  Loader2
+  Loader2,
+  Sparkles,
+  Layers,
+  Play,
+  MousePointer
 } from 'lucide-react';
 
 interface NavigationItem {

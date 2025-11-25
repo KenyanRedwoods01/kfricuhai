@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap'; // TEMP: Disabled due to missing dependency
 import { 
   BarChart3, 
   TrendingUp, 
@@ -17,6 +17,18 @@ import {
   Target,
   Activity
 } from 'lucide-react';
+
+// Simple animation utility to replace GSAP
+const simpleAnimate = (element: HTMLElement, from: any, to: any, duration = 0.8) => {
+  if (!element) return;
+  Object.assign(element.style, { ...from });
+  setTimeout(() => {
+    Object.assign(element.style, {
+      ...to,
+      transition: `all ${duration}s ease-out`
+    });
+  }, 100);
+};
 
 interface InteractiveCardProps {
   title: string;
@@ -45,20 +57,14 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
     if (!card) return;
 
     // Initial entrance animation
-    gsap.fromTo(card,
-      {
-        opacity: 0,
-        y: 50,
-        scale: 0.9,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
-      }
-    );
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(50px) scale(0.9)';
+    card.style.transition = 'opacity 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+    
+    setTimeout(() => {
+      card.style.opacity = '1';
+      card.style.transform = 'translateY(0px) scale(1)';
+    }, 50);
   }, []);
 
   const handleMouseEnter = () => {
@@ -66,27 +72,19 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
     
     if (cardRef.current) {
       // Card lift effect
-      gsap.to(cardRef.current, {
-        y: -10,
-        scale: 1.02,
-        duration: 0.3,
-        ease: "power2.out",
-      });
+      cardRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      cardRef.current.style.transform = 'translateY(-10px) scale(1.02)';
 
       // Icon bounce effect
-      const icon = cardRef.current.querySelector('.card-icon');
+      const icon = cardRef.current.querySelector('.card-icon') as HTMLElement;
       if (icon) {
-        gsap.to(icon, {
-          scale: 1.1,
-          rotation: 5,
-          duration: 0.3,
-          ease: "power2.out",
-        });
+        icon.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        icon.style.transform = 'scale(1.1) rotate(5deg)';
       }
 
       // Subtle glow effect
-      gsap.to(cardRef.current, {
-        boxShadow: `0 20px 40px ${color}40`,
+      cardRef.current.style.transition += ', box-shadow 0.3s ease';
+      cardRef.current.style.boxShadow = `0 20px 40px ${color}40`;
         duration: 0.3,
         ease: "power2.out",
       });
@@ -98,23 +96,15 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
     
     if (cardRef.current) {
       // Reset card position
-      gsap.to(cardRef.current, {
-        y: 0,
-        scale: 1,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-        duration: 0.3,
-        ease: "power2.out",
-      });
+      cardRef.current.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s ease';
+      cardRef.current.style.transform = 'translateY(0px) scale(1)';
+      cardRef.current.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)";
 
       // Reset icon
-      const icon = cardRef.current.querySelector('.card-icon');
+      const icon = cardRef.current.querySelector('.card-icon') as HTMLElement;
       if (icon) {
-        gsap.to(icon, {
-          scale: 1,
-          rotation: 0,
-          duration: 0.3,
-          ease: "power2.out",
-        });
+        icon.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        icon.style.transform = 'scale(1) rotate(0deg)';
       }
     }
   };
@@ -124,18 +114,13 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
     
     if (cardRef.current) {
       // Click animation
-      gsap.to(cardRef.current, {
-        scale: 0.95,
-        duration: 0.1,
-        ease: "power2.in",
-        onComplete: () => {
-          gsap.to(cardRef.current, {
-            scale: 1.02,
-            duration: 0.3,
-            ease: "back.out(1.7)",
-          });
-        }
-      });
+      cardRef.current.style.transition = 'transform 0.1s cubic-bezier(0.42, 0, 1, 1)';
+      cardRef.current.style.transform = 'scale(0.95)';
+      
+      setTimeout(() => {
+        cardRef.current!.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        cardRef.current!.style.transform = 'scale(1.02)';
+      }, 100);
 
       // Ripple effect
       const ripple = document.createElement('div');
@@ -153,18 +138,18 @@ const InteractiveCard: React.FC<InteractiveCardProps> = ({
       cardRef.current.style.position = 'relative';
       cardRef.current.appendChild(ripple);
       
-      gsap.fromTo(ripple, {
-        scale: 0,
-        opacity: 0.3,
-      }, {
-        scale: 4,
-        opacity: 0,
-        duration: 0.6,
-        ease: "power2.out",
-        onComplete: () => {
+      // Ripple effect animation
+      ripple.style.transform += ' scale(0)';
+      ripple.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease';
+      
+      setTimeout(() => {
+        ripple.style.transform = 'translate(-50%, -50%) scale(4)';
+        ripple.style.opacity = '0';
+        
+        setTimeout(() => {
           ripple.remove();
-        }
-      });
+        }, 600);
+      }, 10);
     }
     
     setTimeout(() => setIsClicked(false), 300);
@@ -241,18 +226,14 @@ const InteractiveChartContainer: React.FC<{
     const container = containerRef.current;
     
     // Entrance animation
-    gsap.fromTo(container,
-      {
-        opacity: 0,
-        y: 50,
-        scale: 0.95,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        ease: "back.out(1.7)",
+    container.style.opacity = '0';
+    container.style.transform = 'translateY(50px) scale(0.95)';
+    container.style.transition = 'opacity 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+    
+    setTimeout(() => {
+      container.style.opacity = '1';
+      container.style.transform = 'translateY(0px) scale(1)';
+    }, 100);
       }
     );
   }, []);
@@ -261,24 +242,18 @@ const InteractiveChartContainer: React.FC<{
     setIsExpanded(!isExpanded);
     
     if (containerRef.current) {
-      gsap.to(containerRef.current, {
-        scale: isExpanded ? 1 : 1.05,
-        zIndex: isExpanded ? 1 : 1000,
-        duration: 0.5,
-        ease: "power2.inOut",
-      });
+      containerRef.current!.style.transition = 'transform 0.5s cubic-bezier(0.42, 0, 0.58, 1), z-index 0.5s ease';
+      containerRef.current!.style.transform = `scale(${isExpanded ? 1 : 1.05})`;
+      containerRef.current!.style.zIndex = isExpanded ? '1' : '1000';
     }
   };
 
   const handleControlHover = (controlRef: HTMLElement | null, isHovering: boolean) => {
     if (!controlRef) return;
 
-    gsap.to(controlRef, {
-      scale: isHovering ? 1.1 : 1,
-      backgroundColor: isHovering ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)',
-      duration: 0.2,
-      ease: "power2.out",
-    });
+    controlRef.style.transition = 'transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), background-color 0.2s ease';
+    controlRef.style.transform = `scale(${isHovering ? 1.1 : 1})`;
+    controlRef.style.backgroundColor = isHovering ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.1)';
   };
 
   return (
@@ -378,31 +353,29 @@ const HoverRevealTooltip: React.FC<{
   const handleMouseEnter = () => {
     setIsVisible(true);
     
-    gsap.fromTo(tooltipRef.current,
-      {
-        opacity: 0,
-        y: 10,
-        scale: 0.8,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.3,
+    if (tooltipRef.current) {
+      tooltipRef.current.style.opacity = '0';
+      tooltipRef.current.style.transform = 'translateY(10px) scale(0.8)';
+      tooltipRef.current.style.transition = 'opacity 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+      
+      setTimeout(() => {
+        tooltipRef.current!.style.opacity = '1';
+        tooltipRef.current!.style.transform = 'translateY(0px) scale(1)';
+      }, 10);
+    }
         ease: "back.out(1.7)",
       }
     );
   };
 
   const handleMouseLeave = () => {
-    gsap.to(tooltipRef.current, {
-      opacity: 0,
-      y: 10,
-      scale: 0.8,
-      duration: 0.2,
-      ease: "power2.in",
-      onComplete: () => setIsVisible(false),
-    });
+    if (tooltipRef.current) {
+      tooltipRef.current.style.transition = 'opacity 0.2s cubic-bezier(0.42, 0, 1, 1), transform 0.2s cubic-bezier(0.42, 0, 1, 1)';
+      tooltipRef.current.style.opacity = '0';
+      tooltipRef.current.style.transform = 'translateY(10px) scale(0.8)';
+      
+      setTimeout(() => setIsVisible(false), 200);
+    }
   };
 
   return (
@@ -449,15 +422,14 @@ const MicroInteractionsDashboard: React.FC = () => {
     setSelectedMetric(metricId);
     
     // Highlight selected metric
-    const metric = document.querySelector(`[data-metric="${metricId}"]`);
+    const metric = document.querySelector(`[data-metric="${metricId}"]`) as HTMLElement;
     if (metric) {
-      gsap.to(metric, {
-        scale: 1.05,
-        duration: 0.3,
-        ease: "power2.out",
-        yoyo: true,
-        repeat: 1,
-      });
+      metric.style.transition = 'transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      metric.style.transform = 'scale(1.05)';
+      
+      setTimeout(() => {
+        metric.style.transform = 'scale(1)';
+      }, 300);
     }
   };
 

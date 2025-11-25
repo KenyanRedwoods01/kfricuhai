@@ -1,8 +1,20 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
+// import { gsap } from 'gsap'; // TEMP: Disabled due to missing dependency
 import { BarChart, LineChart, PieChart, TrendingUp, Play, Pause, RotateCcw } from 'lucide-react';
+
+// Simple animation utility to replace GSAP
+const simpleAnimate = (element: HTMLElement, from: any, to: any, duration = 0.8) => {
+  if (!element) return;
+  Object.assign(element.style, { ...from });
+  setTimeout(() => {
+    Object.assign(element.style, {
+      ...to,
+      transition: `all ${duration}s ease-out`
+    });
+  }, 100);
+};
 
 interface ChartData {
   name: string;
@@ -28,18 +40,17 @@ const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({ data, title, animat
     if (!bars.length) return;
 
     // Animate bars with stagger
-    gsap.fromTo(bars,
-      {
-        scaleY: 0,
-        opacity: 0,
-        transformOrigin: 'bottom',
-      },
-      {
-        scaleY: 1,
-        opacity: 1,
-        duration: 1.5,
-        ease: "power3.out",
-        stagger: 0.1,
+    bars.forEach((bar, index) => {
+      // Set initial state
+      bar.style.transformOrigin = 'bottom';
+      bar.style.transform = 'scaleY(0)';
+      bar.style.opacity = '0';
+      bar.style.transition = 'transform 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 1.5s ease';
+      
+      setTimeout(() => {
+        bar.style.transform = 'scaleY(1)';
+        bar.style.opacity = '1';
+      }, index * 100);
         delay: 0.2,
       }
     );
@@ -47,18 +58,29 @@ const AnimatedBarChart: React.FC<AnimatedBarChartProps> = ({ data, title, animat
     // Animate values counting up
     const values = chartRef.current?.querySelectorAll('.chart-value');
     if (values) {
-      values.forEach((value) => {
+      values.forEach((value, index) => {
         const targetValue = parseInt((value as HTMLElement).dataset.value || '0');
-        const obj = { value: 0 };
+        const startTime = Date.now();
+        const duration = 2000; // ms
         
-        gsap.to(obj, {
-          value: targetValue,
-          duration: 2,
-          ease: "power2.out",
-          onUpdate: () => {
-            (value as HTMLElement).textContent = obj.value.toLocaleString();
+        const animateNumber = () => {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Ease out using cubic bezier
+          const easeOut = 1 - Math.pow(1 - progress, 2);
+          const currentValue = Math.floor(targetValue * easeOut);
+          
+          (value as HTMLElement).textContent = currentValue.toLocaleString();
+          
+          if (progress < 1) {
+            requestAnimationFrame(animateNumber);
           }
-        });
+        };
+        
+        setTimeout(() => {
+          requestAnimationFrame(animateNumber);
+        }, index * 100);
       });
     }
   }, [data, animate]);
@@ -142,13 +164,17 @@ const RacingBarChart: React.FC = () => {
   useEffect(() => {
     if (isRacing) {
       // Animate bar positions during race
-      gsap.to(barsRef.current, {
-        y: -5,
-        duration: 0.3,
-        yoyo: true,
-        repeat: 1,
-        ease: "power2.inOut",
-        stagger: 0.1,
+      barsRef.current.forEach((bar, index) => {
+        // Set initial state
+        bar.style.transform = 'translateY(0px)';
+        bar.style.transition = 'transform 0.3s ease-in-out';
+        
+        setTimeout(() => {
+          bar.style.transform = 'translateY(-5px)';
+          setTimeout(() => {
+            bar.style.transform = 'translateY(0px)';
+          }, 300);
+        }, index * 100);
       });
     }
     
@@ -253,17 +279,16 @@ const AnimatedPieChart: React.FC = () => {
   useEffect(() => {
     if (animate) {
       // Animate pie chart arcs
-      gsap.fromTo(pathRefs.current,
-        {
-          strokeDasharray: "0 100",
-          strokeDashoffset: 100,
-        },
-        {
-          strokeDasharray: "100 0",
-          strokeDashoffset: 0,
-          duration: 2,
-          ease: "power2.out",
-          stagger: 0.2,
+      pathRefs.current.forEach((path, index) => {
+        // Set initial state
+        path.style.strokeDasharray = '0 100';
+        path.style.strokeDashoffset = '100';
+        path.style.transition = 'stroke-dasharray 2s cubic-bezier(0.25, 0.46, 0.45, 0.94), stroke-dashoffset 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        
+        setTimeout(() => {
+          path.style.strokeDasharray = '100 0';
+          path.style.strokeDashoffset = '0';
+        }, index * 200);
         }
       );
     }
@@ -362,19 +387,18 @@ const AnimatedChartsDashboard: React.FC = () => {
 
   useEffect(() => {
     if (animateAll && dashboardRef.current) {
-      const cards = dashboardRef.current.querySelectorAll('.chart-card');
-      gsap.fromTo(cards,
-        {
-          opacity: 0,
-          y: 50,
-          scale: 0.9,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "back.out(1.7)",
+      const cards = dashboardRef.current.querySelectorAll('.chart-card') as NodeListOf<HTMLElement>;
+      
+      cards.forEach((card, index) => {
+        // Set initial state
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px) scale(0.9)';
+        card.style.transition = 'opacity 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55), transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55)';
+        
+        setTimeout(() => {
+          card.style.opacity = '1';
+          card.style.transform = 'translateY(0px) scale(1)';
+        }, index * 150);
           stagger: 0.1,
         }
       );
