@@ -73,7 +73,21 @@ export const AdvancedDocumentGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
-      await ExcelGenerator.generateKPIDashboard(kpiData || []);
+      // Convert KpiData object to array format for Excel generation
+      const kpiArray = kpiData ? Object.entries(kpiData).flatMap(([phase, data]) => {
+        const phaseName = {
+          'phase_1': 'Quick Wins',
+          'phase_2': 'Advanced Analytics',
+          'phase_3': 'Strategic Insights'
+        }[phase] || phase;
+        
+        return Object.entries(data as any).map(([key, value]) => ({
+          category: phaseName,
+          metric: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          value: value as number
+        }));
+      }) : [];
+      await ExcelGenerator.generateKPIDashboard(kpiArray);
 
       const fileRecord = {
         id: Date.now().toString(),
@@ -95,8 +109,22 @@ export const AdvancedDocumentGenerator: React.FC = () => {
     setIsGenerating(true);
 
     try {
+      // Convert KpiData object to array format for Google Sheets export
+      const kpiArray = kpiData ? Object.entries(kpiData).flatMap(([phase, data]) => {
+        const phaseName = {
+          'phase_1': 'Quick Wins',
+          'phase_2': 'Advanced Analytics', 
+          'phase_3': 'Strategic Insights'
+        }[phase] || phase;
+        
+        return Object.entries(data as any).map(([key, value]) => ({
+          category: phaseName,
+          metric: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          value: value as number
+        }));
+      }) : [];
       const result = await DocumentManager.syncDataToSheets(
-        kpiData || [],
+        kpiArray,
         `KPI Dashboard ${new Date().toLocaleDateString()}`
       );
 
@@ -292,7 +320,7 @@ const DataExportTab: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
 
   const dataOptions = [
-    { value: 'all', label: 'All KPI Data', count: kpiData?.length || 0 },
+    { value: 'all', label: 'All KPI Data', count: kpiData ? Object.entries(kpiData).flatMap(([phase, data]) => Object.keys(data as any)).length : 0 },
     { value: 'phase1', label: 'Phase 1 - Quick Wins', count: 4 },
     { value: 'phase2', label: 'Phase 2 - Analytics', count: 4 },
     { value: 'phase3', label: 'Phase 3 - Intelligence', count: 5 },
@@ -308,7 +336,19 @@ const DataExportTab: React.FC = () => {
     setIsExporting(true);
     try {
       // Filter data based on selection
-      let filteredData = kpiData || [];
+      let filteredData = kpiData ? Object.entries(kpiData).flatMap(([phase, data]) => {
+        const phaseName = {
+          'phase_1': 'Quick Wins',
+          'phase_2': 'Advanced Analytics',
+          'phase_3': 'Strategic Insights'
+        }[phase] || phase;
+        
+        return Object.entries(data as any).map(([key, value]) => ({
+          category: phaseName,
+          metric: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          value: value as number
+        }));
+      }) : [];
       if (!selectedData.includes('all')) {
         // Apply phase filtering logic here
       }
